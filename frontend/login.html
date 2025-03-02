@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Face Recognition</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        #camera-container {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        #video {
+            border-radius: 4px;
+            width: 100%;
+            height: auto;
+        }
+
+        #capture-button {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #capture-button:hover {
+            background-color: #45a049;
+        }
+
+        canvas {
+            display: none;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        #message {
+            margin-top: 20px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 20px;
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+
+<body class="light-mode">
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header glass-effect">
+                <h3>NotePro</h3>
+                <button class="btn-close d-lg-none" id="closeSidebar"></button>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link active">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="new-note.html" class="nav-link">
+                            <i class="fas fa-plus-circle"></i> New Note
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="archive.html" class="nav-link">
+                            <i class="fas fa-archive"></i> Archive
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-tags"></i> Tags
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="trash.html" class="nav-link">
+                            <i class="fas fa-trash"></i> Trash
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="about.html" class="nav-link">
+                            <i class="bi bi-exclamation-circle-fill"></i> About
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="register.html" class="nav-link">
+                            <i class="bi bi-exclamation-circle-fill"></i> Register
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="login.html" class="nav-link">
+                            <i class="bi bi-exclamation-circle-fill"></i> Login
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <!-- Copyright Section -->
+            <footer class="sidebar-footer text-center mt-auto p-3">
+                <p>&copy; 2025 NotePro</p>
+                <p class="footerRights">All Rights Reserved.</p>
+            </footer>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content" style="background-image: var(--chat-bg);">
+            <!-- Header -->
+            <header class="header glass-effect">
+                <button class="btn btn-link d-lg-none" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <!-- Day/Night Toggle -->
+                <div class="theme-toggle">
+                    <button id="themeToggle" class="btn btn-link">
+                        <i class="fas fa-moon"></i> <!-- Icon for night mode -->
+                    </button>
+                </div>
+            </header>
+
+            <body>
+                <div class="login-container">
+                    <h2>Login with Face Recognition</h2>
+                    <form id="login-form">
+                        <input type="text" id="username" name="username" placeholder="Username" required>
+
+                        <div id="camera-container">
+                            <video id="video" width="100%" height="auto" autoplay></video>
+                            <button type="button" id="capture-button">Capture Face</button>
+                            <canvas id="canvas" width="300" height="200"></canvas>
+                        </div>
+
+                        <button type="submit">Login</button>
+                    </form>
+                    <div id="message"></div>
+                </div>
+
+                <!-- GitHub Link (Desktop) -->
+                <a href="https://github.com/Kumar-vikalp" target="_blank" class="github-link d-none d-lg-flex">
+                    <i class="fab fa-github"></i>
+                </a>
+
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                <script src="js/theme.js"></script>
+                <script src="js/sidebar.js"></script>
+                <script src="js/newnote.js"></script>
+                <script src="js/login.js"></script>
+            </body>
+
+</html>

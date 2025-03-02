@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotePro - Trash</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Bootstrap Icons CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="light-mode">
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header glass-effect">
+                <h3>NotePro</h3>
+                <button class="btn-close d-lg-none" id="closeSidebar"></button>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link active">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="new-note.html" class="nav-link">
+                            <i class="fas fa-plus-circle"></i> New Note
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="archive.html" class="nav-link">
+                            <i class="fas fa-archive"></i> Archive
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="" class="nav-link">
+                            <i class="fas fa-tags"></i> Tags
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="trash.html" class="nav-link">
+                            <i class="fas fa-trash"></i> Trash
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="about.html" class="nav-link">
+                            <i class="bi bi-exclamation-circle-fill"></i> About
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="register.html" class="nav-link">
+                            <i class="bi bi-exclamation-circle-fill"></i> Register
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="login.html" class="nav-link">
+                            <i class="bi bi-exclamation-circle-fill"></i> Login
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <!-- Copyright Section -->
+            <footer class="sidebar-footer text-center mt-auto p-3">
+                <p>&copy; 2025 NotePro</p>
+                <p class="footerRights">All Rights Reserved.</p>
+            </footer>
+        </aside>
+        <!-- Main Content -->
+        <div class="main-content" style="background-image: var(--chat-bg);">
+            <!-- Header -->
+            <header class="header glass-effect">
+                <button class="btn btn-link d-lg-none" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <!-- Day/Night Toggle -->
+                <div class="theme-toggle">
+                    <button id="themeToggle" class="btn btn-link">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <body class="light-mode">
+                <div class="container my-5 ">
+                    <div class="card shadow-lg mx-auto " style="max-width: 600px; background: transparent; ">
+                        <div class="card-header text-center text-white mb-3"
+                            style="background: var(--primary-color); color: black !important;">
+                            <h2>Welcome to NotePro!</h2>
+                        </div>
+                        <div class="card-body" style="background: wheat;    border-radius: 10px;">
+                            <p class="lead text-center">
+                                <span class="fs-1">☁️✨</span> Ever feel like your notes are scattered across a stormy
+                                sky? 🌩️ Worry not! NotePro is here to gather them all under one cloud—yours! ☁️
+                                <br><br>
+                                Whether it’s a grocery list 🛒, a brilliant idea 💡, or just random thoughts 🧠, NotePro
+                                will keep them safe and sound, floating in the digital ether.
+                                <br><br>
+                                And hey, we promise, no bugs or creepy crawlies 🐛🐜 (just a few friendly ones)!
+                                <br><br>
+                                So, sit back, relax, and let your thoughts soar! 🚀☁️
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+                <!-- GitHub Link (Desktop) -->
+                <a href="https://github.com/Kumar-vikalp" target="_blank" class="github-link d-none d-lg-flex">
+                    <i class="fab fa-github"></i>
+                </a>
+
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                <script src="js/theme.js"></script>
+                <script src="js/sidebar.js"></script>
+                <script src="js/newnote.js"></script>
+            </body>
+
+</html>

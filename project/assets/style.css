@@ -1,0 +1,426 @@
+/* Variables */
+:root {
+    --sidebar-width: 280px;
+    --header-height: 60px;
+    --primary-color: #0d6efd;
+    --sidebar-bg: #ffffff;
+    --content-bg: #f8f9fa;
+    --text-color: black;
+    --border-color: #dee2e6;
+    --animation-duration: 0.3s;
+    --chat-bg: url('./assets/dayBackground.png'), url('https://envs.sh/gie.png');
+    --background: linear-gradient(129deg, #E8F9FF, #FBFBFB);
+    --header-newbg: linear-gradient(129deg, #E8F9FF, #FBFBFB);
+    --cross-btn : black;
+    --new-note-bg: linear-gradient(48deg, #A5C5C4, #6B8D8D); /* Light mode background gradient */
+}
+
+/* Dark Mode Variables */
+[data-theme="dark"] {
+    --sidebar-bg: #1a1d21;
+    --background: linear-gradient(129deg, #1A1A1D, #3B1C32);
+    --header-newbg: linear-gradient(129deg, #1A1A1D, #3B1C32);
+    --content-bg: #121416;
+    --text-color: white;
+    --border-color: #2d3238;
+    --card-color: #1a1d21;
+    --card-bg: #212529;
+    --chat-bg: url('./assets/nightBackground.png'), url('https://envs.sh/gFM.png');
+    --primary-color: #EFB036;
+    --cross-btn : white;
+    --new-note-bg: linear-gradient(48deg, #1B4242, #092635);
+
+
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleUp {
+    from {
+        transform: scale(0.95);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+/* Layout */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--content-bg);
+    color: var(--text-color);
+    transition: background-color var(--animation-duration), color var(--animation-duration);
+}
+
+.wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--background);
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    position: fixed;
+    height: 100vh;
+    z-index: 1000;
+    transition: transform var(--animation-duration) ease;
+}
+
+.sidebar.show {
+    animation: slideIn var(--animation-duration) ease forwards;
+}
+
+.sidebar-header {
+    height: var(--header-height);
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sidebar-nav {
+    padding: 1rem;
+}
+.sidebar-nav .nav-item {
+    margin-bottom: 15px; /* Adjust the space between items */
+}
+
+.sidebar-nav .nav-link {
+    display: flex;
+    align-items: center;
+}
+
+.sidebar-nav .nav-link i {
+    margin-right: 10px; /* Adjust the space between icon and text */
+}
+
+.nav-link {
+    color: var(--text-color);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: 0.375rem;
+    transition: all var(--animation-duration);
+}
+
+.nav-link:hover,
+.nav-link.active {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: var(--primary-color);
+    transform: translateX(4px);
+}
+
+.nav-link i {
+    width: 1.25rem;
+    transition: transform var(--animation-duration);
+}
+
+.nav-link:hover i {
+    transform: scale(1.1);
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    min-width: 0;
+    transition: margin-left var(--animation-duration);
+}
+
+/* Header */
+.header {
+    height: var(--header-height);
+    background: var(--header-newbg);
+    background-color: var(--sidebar-bg);
+    background: var(--background);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 900;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Content */
+.content {
+    padding: 2rem;
+}
+
+/* Note Cards */
+.note-card {
+    height: 100%;
+    transition: all var(--animation-duration);
+    animation: fadeIn var(--animation-duration) ease-out;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.1); /* Add shadow */
+    
+}
+
+.note-card:hover {
+    transform: translateY(-4px); /* Lift effect on hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.2); /* Intensify shadow on hover */
+}
+
+.note-card .card-actions {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all var(--animation-duration);
+}
+
+.note-card:hover .card-actions {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.note-card .btn {
+    transition: all var(--animation-duration);
+}
+
+.note-card .btn:hover {
+    transform: scale(1.05);
+}
+
+/* Note Editor Modal */
+.modal.fade .modal-dialog {
+    transform: scale(0.95);
+    transition: transform var(--animation-duration);
+}
+
+.modal.show .modal-dialog {
+    transform: scale(1);
+}
+
+.modal-content {
+    background-color: var(--sidebar-bg);
+    color: var(--text-color);
+}
+
+.modal-backdrop {
+    transition: opacity var(--animation-duration);
+}
+
+/* Theme Toggle */
+.header .btn {
+    color: var(--primary-color);
+}
+.theme-toggle {
+    /* margin-top: 2rem; */
+    text-align: center;
+    /* color: var(--primary-color); */
+}
+
+.theme-toggle button {
+    transition: transform var(--animation-duration);
+}
+
+.theme-toggle button:hover {
+    transform: rotate(15deg);
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .note-card .card-actions {
+        background-color: var();
+        opacity: 1;
+        transform: translateY(0);
+        position: static;
+        margin-top: 1rem;
+        margin: 5px;
+        display: flex;
+        gap: 10px;
+        /* margin-right: auto; */
+        justify-content: flex-end;
+        /* margin-top: -32px; */
+        /* margin-top: auto; */
+    }
+}
+
+/* Form Elements */
+.form-control,
+.form-select {
+    background-color: var(--sidebar-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+    transition: all var(--animation-duration);
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: var(--sidebar-bg);
+    border-color: var(--primary-color);
+    color: var(--text-color);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    transform: translateY(-1px);
+}
+
+/* Color Options */
+.color-option {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    padding: 0;
+    border: 2px solid transparent;
+    transition: all var(--animation-duration);
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+}
+
+.color-option.selected {
+    border-color: var(--text-color);
+    transform: scale(1.15);
+}
+
+/* Buttons */
+.btn {
+    transition: all var(--animation-duration);
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* New Note Card */
+
+.newNoteEdit {
+    background: var(--new-note-bg); /* Use the new-note-bg variable */
+    color: var(--text-color);
+    /* padding: 20px; */
+    border-radius: 10px; /* Optional, to round the corners */
+}
+
+/* Additional styling for the card inside the form */
+.card-body {
+    background: var(--new-note-bg); /* Apply background to card body */
+    color: var(--text-color); /* Ensure text color matches theme */
+    border-radius: 10px;
+}
+
+#closeSidebar {
+    color: var(--cross-btn);
+    background-color: transparent;
+    outline: none; /* Removes the focus outline */
+    box-shadow: none; /* Removes any box-shadow that might appear */
+}
+
+#closeSidebar:focus {
+    outline: none; /* Ensures no outline on focus */
+    box-shadow: none;
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+.fadeOut {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+#sidebar.show {
+    transform: translateX(0);  /* Slide in */
+    opacity: 1;
+}
+
+/* Default (for larger screens, sidebar stays visible) */
+#sidebar {
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    transform: translateX(0);  /* Sidebar stays visible */
+    opacity: 1;
+}
+
+/* Mobile devices (screen width <= 768px) */
+@media (max-width: 768px) {
+    #sidebar {
+        width: 200px; /* Set the width of the sidebar on mobile devices */
+        transform: translateX(-100%); /* Initially hidden */
+        opacity: 0;
+    }
+
+    #sidebar.show {
+        transform: translateX(0);  /* Slide in */
+        opacity: 1;
+    }
+}
+
+
+/* Make sidebar a flex container */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;  /* Full height */
+    justify-content: space-between;  /* Push footer to bottom */
+}
+
+/* Sidebar footer style */
+.sidebar-footer {
+    background-color: transparent;
+    font-size: 1rem;
+    color: var(--text-color);
+    border-top: none solid #dee2e6;
+    padding: 10px;
+    text-align: center;
+}
+
+/* Styling for the copyright text */
+.sidebar-footer p {
+    margin: 0;
+}
+
+.footerRights {
+    font-size: 0.8rem;
+}
