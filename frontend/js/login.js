@@ -62,6 +62,12 @@ loginForm.onsubmit = async (e) => {
         if (response.ok) {
             if (data.status === 'success') {
                 messageDiv.innerText = data.message || 'Login successful!';
+                localStorage.setItem('token', data.token);
+                // Optionally store the username and similarity if returned from API
+                localStorage.setItem('username', data.username);
+                localStorage.setItem('similarity', data.similarity);
+
+                window.location.href = '/frontend/index.html'; // Redirect after login
             } else {
                 messageDiv.innerText = data.message || 'Login failed. Please try again.';
             }

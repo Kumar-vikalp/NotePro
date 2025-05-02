@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         try {
             const response = await fetch(
-                isEdit ? `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.notes}${noteId}/` : `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.notes}`,
+                isEdit ? `${API_CONFIG.baseUrl}${noteId}/` : `${API_CONFIG.baseUrl}`,
                 {
                     method: isEdit ? 'PUT' : 'POST',
                     headers: API_CONFIG.headers,

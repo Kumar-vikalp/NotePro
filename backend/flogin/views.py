@@ -1,127 +1,253 @@
 import base64
 import numpy as np
-import cv2
-from django.shortcuts import render
+import io  # ✅ Correct import
+import face_recognition
 from django.core.files.base import ContentFile
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import AllowAny
+from rest_framework.authtoken.models import Token
+from PIL import Image  # Import Pillow to handle image format conversion
 from .models import User, UserImages
 from .serializers import UserSerializer, UserImagesSerializer
 import logging
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+import time
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# Create a face recognizer
-face_recognizer = cv2.face.LBPHFaceRecognizer_create()
-
-# Create a face recognizer
-face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-
-
 class RegisterUser(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         logger.debug("Received POST request for registration")
+        serializer = UserSerializer(data=request.data)
+        
+        if not serializer.is_valid():
+            logger.debug(f"Invalid user data: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
         username = request.data.get('username')
         face_image_data = request.data.get('face_image')
         
-        logger.debug(f"Received username: {username}")
-        logger.debug(f"Received face image data: {face_image_data[:30]}...")  # Log part of the base64 string to verify it's being received
+        if not face_image_data:
+            return Response({'status': 'error', 'message': 'Face image is required'}, 
+                           status=status.HTTP_400_BAD_REQUEST)
+        
+        logger.debug(f"Processing registration for username: {username}")
 
         try:
             # Check if username exists
             if User.objects.filter(username=username).exists():
                 logger.debug("Username already exists")
-                return Response({'status': 'error', 'message': 'Username already exists!'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {'status': 'error', 'message': 'Username already exists!'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
+            # Process the base64 image
+            if "," in face_image_data:
+                face_image_data = face_image_data.split(",")[1]
+            
             # Decode base64 image
-            face_image_data = base64.b64decode(face_image_data.split(",")[1])
-            nparr = np.frombuffer(face_image_data, np.uint8)
-            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            image_bytes = base64.b64decode(face_image_data)
 
-            if img is None:
-                logger.debug("Failed to decode the image")
-                return Response({'status': 'error', 'message': 'Invalid image format!'}, status=status.HTTP_400_BAD_REQUEST)
+            # Load image using PIL
+            image = Image.open(io.BytesIO(image_bytes))
 
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            # Convert image to RGB if it isn't already in that mode
+            logger.debug(f"Image mode before conversion: {image.mode}")
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
+            logger.debug(f"Image mode after conversion: {image.mode}")
+
+            # Convert the image to a numpy array for face_recognition
+            img = np.array(image)
+
+            # Now you can use face_recognition on the image
+            img = face_recognition.load_image_file(io.BytesIO(image_bytes))
 
             # Detect faces
-            faces = face_cascade.detectMultiScale(gray, scaleFactor=1.2, minNeighbors=5)
-            if len(faces) == 0:
+            face_locations = face_recognition.face_locations(img)
+            
+            if len(face_locations) == 0:
                 logger.debug("No faces detected in the image")
-                return Response({'status': 'error', 'message': 'No face detected!'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {'status': 'error', 'message': 'No face detected!'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Get face encodings
+            face_encodings = face_recognition.face_encodings(img, face_locations)
+            
+            if len(face_encodings) == 0:
+                logger.debug("Could not extract face features")
+                return Response(
+                    {'status': 'error', 'message': 'Could not extract face features!'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-            x, y, w, h = faces[0]
-            face_region = gray[y:y + h, x:x + w]
-
-            # Save user data
-            user = User(username=username)
-            user.save()
-
-            # Convert the detected face to an image file format (jpg)
-            face_image = cv2.imencode('.jpg', face_region)[1].tobytes()
-
-            # Save the face image as a file using Django's ContentFile
+            # Save user data - using the serializer
+            user = serializer.save()
+            
+            # Save the face image
             user_image = UserImages.objects.create(
                 user=user,
-                face_image=ContentFile(face_image, name=f"{username}_face.jpg")
+                face_image=ContentFile(image_bytes, name=f"{username}_face.jpg")
             )
+            
+            # Create auth token for the user
+            token, created = Token.objects.get_or_create(user=user)
 
             logger.debug("User registered successfully")
-            return Response({'status': 'success', 'message': 'User registered successfully!'}, status=status.HTTP_201_CREATED)
+            return Response({
+                'status': 'success',
+                'message': 'User registered successfully!',
+                'token': token.key
+            }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             logger.error(f"Error during registration: {e}")
-            return Response({'status': 'error', 'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
+            return Response(
+                {'status': 'error', 'message': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class LoginUser(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         username = request.data.get('username')
         face_image_data = request.data.get('face_image')
+        
+        if not username or not face_image_data:
+            return Response(
+                {'status': 'error', 'message': 'Username and face image are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             # Get user by username
-            user = User.objects.get(username=username)
-            user_image = UserImages.objects.get(user=user)
+            try:
+                user = User.objects.get(username=username)
+                user_image = UserImages.objects.get(user=user)
+            except User.DoesNotExist:
+                return Response(
+                    {'status': 'error', 'message': 'User does not exist!'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            except UserImages.DoesNotExist:
+                return Response(
+                    {'status': 'error', 'message': 'User face image not found!'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
+            # Process the base64 image
+            if "," in face_image_data:
+                face_image_data = face_image_data.split(",")[1]
+                
             # Decode the base64-encoded face image
-            face_image_data = base64.b64decode(face_image_data.split(",")[1])
-            nparr = np.frombuffer(face_image_data, np.uint8)
-            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            image_bytes = base64.b64decode(face_image_data)
+            
+            # Load uploaded image
+            nparr = np.frombuffer(image_bytes, np.uint8)
+            uploaded_img = face_recognition.load_image_file(io.BytesIO(nparr))
 
-            if img is None:
-                return Response({'status': 'error', 'message': 'Invalid image format!'}, status=status.HTTP_400_BAD_REQUEST)
-
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-            # Detect face in uploaded image
-            faces = face_cascade.detectMultiScale(gray, scaleFactor=1.2, minNeighbors=5)
-            if len(faces) == 0:
-                return Response({'status': 'error', 'message': 'No face detected!'}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Assuming only one face is detected
-            x, y, w, h = faces[0]
-            face_region = gray[y:y + h, x:x + w]
+            
+            # Detect faces in uploaded image
+            face_locations = face_recognition.face_locations(uploaded_img)
+            
+            if len(face_locations) == 0:
+                return Response(
+                    {'status': 'error', 'message': 'No face detected in the uploaded image!'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Get face encodings from the uploaded image
+            uploaded_face_encodings = face_recognition.face_encodings(uploaded_img, face_locations)
+            
+            if len(uploaded_face_encodings) == 0:
+                return Response(
+                    {'status': 'error', 'message': 'Could not extract face features from the uploaded image!'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
             # Load stored face image
-            known_face = cv2.imdecode(np.frombuffer(user_image.face_image.read(), np.uint8), cv2.IMREAD_GRAYSCALE)
+            stored_img = face_recognition.load_image_file(user_image.face_image.path)
+            stored_face_locations = face_recognition.face_locations(stored_img)
+            
+            if len(stored_face_locations) == 0:
+                return Response(
+                    {'status': 'error', 'message': 'No face detected in the stored image!'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+                
+            stored_face_encodings = face_recognition.face_encodings(stored_img, stored_face_locations)
+            
+            if len(stored_face_encodings) == 0:
+                return Response(
+                    {'status': 'error', 'message': 'Could not extract face features from the stored image!'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
-            # Train the recognizer with the stored face image (one for now)
-            face_recognizer.train([known_face], np.array([0]))  # Training with only one image
+            # Compare faces
+            match = face_recognition.compare_faces(
+                [stored_face_encodings[0]], 
+                uploaded_face_encodings[0],
+                tolerance=0.6  # Adjust tolerance as needed
+            )
+            
+            # Calculate face distance (lower means more similar)
+            face_distance = face_recognition.face_distance(
+                [stored_face_encodings[0]], 
+                uploaded_face_encodings[0]
+            )[0]
+            
+            logger.debug(f"Face match: {match[0]}, distance: {face_distance}")
 
-            # Predict the face
-            label, confidence = face_recognizer.predict(face_region)
-
-            if confidence < 50:  # Lower confidence means a better match
-                return Response({'status': 'success', 'message': 'Login successful!'}, status=status.HTTP_200_OK)
+            if match[0]:
+                # Get or create auth token
+                token, created = Token.objects.get_or_create(user=user)
+                
+                return Response({
+                    'status': 'success',
+                    'message': 'Login successful!',
+                    'token': token.key,
+                    'username': user.username,
+                    'similarity': round((1 - face_distance) * 100, 2),
+                }, status=status.HTTP_200_OK)
+                
             else:
-                return Response({'status': 'error', 'message': 'Face does not match!'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        except User.DoesNotExist:
-            return Response({'status': 'error', 'message': 'User does not exist!'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({
+                    'status': 'error',
+                    'message': 'Face does not match!',
+                    'similarity': round((1 - face_distance) * 100, 2)  # Percentage similarity
+                }, status=status.HTTP_401_UNAUTHORIZED)
 
         except Exception as e:
+            logger.error(f"Error during login: {e}")
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class LogoutUser(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        start_time = time.time()
+
+        try:
+            request.user.auth_token.delete()  # Deletes the token
+            end_time = time.time()
+            duration = end_time - start_time
+            logger.debug(f"Logout request processed in {duration} seconds")
+
+            return Response({'status': 'success', 'message': 'Logged out successfully.'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error during logout: {e}")
             return Response({'status': 'error', 'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

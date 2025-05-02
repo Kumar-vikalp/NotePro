@@ -65,10 +65,12 @@ const NotesUI = {
                     </div>
                 </div>
                 <div class="card-body d-flex flex-column">
-                    <p class="card-text flex-grow-1" style="max-height: 100px; overflow-y: auto;">${this.escapeHtml(note.content)}</p>
+                    <p class=" card-text flex-grow-1" style="max-height: 100px; overflow-y: auto; color: var(--text-color);">${this.escapeHtml(note.content)}</p>
                     <div class="d-flex justify-content-between align-items-center mt-2">
                         <span class="badge bg-secondary">${this.escapeHtml(note.category)}</span>
-                        <small class="text-muted">${new Date(note.created_at).toLocaleDateString()}</small>
+                        <small class="text-muted" style="color: var(--skeleton-shine);">
+                         ${new Date(note.created_at).toLocaleDateString()}
+                        </small>
                     </div>
                 </div>
             </div>
