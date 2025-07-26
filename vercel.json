@@ -1,16 +1,16 @@
-
-
 {
   "version": 2,
   "buildCommand": "pip install -r requirements.txt && python manage.py collectstatic --noinput",
   "builds": [
     {
-      "src": "project/wsgi.py",
+      "src": "backend/backend/wsgi.py",
       "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "15mb",
-        "runtime": "python3.11"
-      }
+      "config": { "maxLambdaSize": "15mb", "runtime": "python3.12" }
+    },
+    {
+      "src": "build_files.sh",
+      "use": "@vercel/static-build",
+      "config": { "distDir": ".vercel/output" }
     }
   ],
   "routes": [
