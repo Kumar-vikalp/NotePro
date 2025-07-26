@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "pip install -r requirements.txt && python manage.py collectstatic --noinput",
   "builds": [
     {
       "src": "backend/backend/wsgi.py",
@@ -20,7 +19,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "project/wsgi.py"
+      "dest": "backend/backend/wsgi.py"
     }
   ]
 }
